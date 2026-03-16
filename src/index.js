@@ -40,14 +40,6 @@ export default {
       return Response.redirect(apex.toString(), 301);
     }
 
-    if (url.pathname === "/app") {
-      return buildRedirect(url, "/app.html", 302);
-    }
-
-    if (url.pathname === "/admin") {
-      return buildRedirect(url, "/admin.html", 302);
-    }
-
     if (url.pathname === "/nft") {
       return buildRedirect(url, "/nft/metadata/1.json", 302);
     }

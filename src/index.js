@@ -13,7 +13,7 @@ function applySecurityHeaders(response, pathname) {
     headers.set(key, value);
   }
 
-  if (pathname === "/admin" || pathname === "/admin.html") {
+  if (pathname === "/admin" || pathname === "/admin/" || pathname.startsWith("/admin/")) {
     headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
@@ -46,9 +46,9 @@ export default {
 
     const assetUrl = new URL(url.toString());
     if (assetUrl.pathname === "/app") {
-      assetUrl.pathname = "/app.html";
+      assetUrl.pathname = "/app/index.html";
     } else if (assetUrl.pathname === "/admin") {
-      assetUrl.pathname = "/admin.html";
+      assetUrl.pathname = "/admin/index.html";
     }
 
     const assetRequest = assetUrl.toString() === url.toString()

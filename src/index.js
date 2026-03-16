@@ -44,7 +44,18 @@ export default {
       return buildRedirect(url, "/nft/metadata/1.json", 302);
     }
 
-    const response = await env.ASSETS.fetch(request);
+    const assetUrl = new URL(url.toString());
+    if (assetUrl.pathname === "/app") {
+      assetUrl.pathname = "/app.html";
+    } else if (assetUrl.pathname === "/admin") {
+      assetUrl.pathname = "/admin.html";
+    }
+
+    const assetRequest = assetUrl.toString() === url.toString()
+      ? request
+      : new Request(assetUrl.toString(), request);
+
+    const response = await env.ASSETS.fetch(assetRequest);
     return applySecurityHeaders(response, url.pathname);
   }
 };

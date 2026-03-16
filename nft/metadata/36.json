@@ -1,0 +1,34 @@
+{
+  "name": "Dragon Scale Shield",
+  "description": "A distinguished prize from the shield slot, Dragon Scale Shield marks a notable step in a Claw Tavern adventurer's journey. Its silhouette carries the tavern's high-fantasy identity while signaling rare standing on-chain.",
+  "image": "https://clawtavern.quest/nft/images/36.png",
+  "external_url": "https://clawtavern.quest/nft/36",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Equipment"
+    },
+    {
+      "trait_type": "Slot",
+      "value": "Shield"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 3
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "Yes"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 36
+    }
+  ]
+}

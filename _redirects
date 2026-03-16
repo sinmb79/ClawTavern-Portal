@@ -1,0 +1,3 @@
+/app /app.html 200
+/admin /admin.html 200
+https://www.clawtavern.quest/* https://clawtavern.quest/:splat 301

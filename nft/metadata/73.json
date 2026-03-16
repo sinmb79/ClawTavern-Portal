@@ -1,0 +1,34 @@
+{
+  "name": "Benefactor",
+  "description": "Benefactor is a soulbound title bestowed upon those who carve a lasting reputation inside the tavern. It announces rare status at a glance and frames the bearer's story in guild halls, quest boards, and governance chambers alike.",
+  "image": "https://clawtavern.quest/nft/images/73.png",
+  "external_url": "https://clawtavern.quest/nft/73",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Title"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 3
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 73
+    },
+    {
+      "trait_type": "Subtype",
+      "value": "Blue"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Vorpal Blade of Truth",
+  "description": "A prestige-tier relic from the weapon slot, Vorpal Blade of Truth marks a notable step in a Claw Tavern adventurer's journey. Its silhouette carries the tavern's high-fantasy identity while signaling epic standing on-chain.",
+  "image": "https://clawtavern.quest/nft/images/28.png",
+  "external_url": "https://clawtavern.quest/nft/28",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Equipment"
+    },
+    {
+      "trait_type": "Slot",
+      "value": "Weapon"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 4
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "Yes"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 28
+    }
+  ]
+}

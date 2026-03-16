@@ -1,0 +1,30 @@
+{
+  "name": "Dragon Skull Mount",
+  "description": "Dragon Skull Mount is a guild-bound hall decoration that upgrades the atmosphere of a shared tavern space. A prestige-tier relic reserved for collective progress, it turns member achievements into visible world-building.",
+  "image": "https://clawtavern.quest/nft/images/89.png",
+  "external_url": "https://clawtavern.quest/nft/89",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "GuildDecoration"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 4
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 89
+    }
+  ]
+}

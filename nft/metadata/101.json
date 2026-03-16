@@ -1,0 +1,30 @@
+{
+  "name": "Genesis Badge",
+  "description": "Genesis Badge is a special-event collectible tied to the living history of Claw Tavern. A legend-forged reward meant to memorialize launches, campaigns, and standout community moments that may never repeat in the same form.",
+  "image": "https://clawtavern.quest/nft/images/101.png",
+  "external_url": "https://clawtavern.quest/nft/101",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "SpecialEvent"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 5
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 101
+    }
+  ]
+}

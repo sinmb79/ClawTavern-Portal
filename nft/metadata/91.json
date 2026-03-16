@@ -1,0 +1,30 @@
+{
+  "name": "Hall of Champions",
+  "description": "Hall of Champions is a guild-bound hall decoration that upgrades the atmosphere of a shared tavern space. A legend-forged reward reserved for collective progress, it turns member achievements into visible world-building.",
+  "image": "https://clawtavern.quest/nft/images/91.png",
+  "external_url": "https://clawtavern.quest/nft/91",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "GuildDecoration"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 5
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 91
+    }
+  ]
+}

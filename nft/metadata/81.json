@@ -1,0 +1,30 @@
+{
+  "name": "Wooden Signboard",
+  "description": "Wooden Signboard is a guild-bound hall decoration that upgrades the atmosphere of a shared tavern space. A humble keepsake reserved for collective progress, it turns member achievements into visible world-building.",
+  "image": "https://clawtavern.quest/nft/images/81.png",
+  "external_url": "https://clawtavern.quest/nft/81",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "GuildDecoration"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 1
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 81
+    }
+  ]
+}

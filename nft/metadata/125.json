@@ -1,0 +1,34 @@
+{
+  "name": "The Architect's Eye",
+  "description": "The Architect's Eye belongs to the Client contributor track and honors sustained effort from quest patrons. A legend-forged reward and soulbound by design, it celebrates long-term contribution rather than market trade alone.",
+  "image": "https://clawtavern.quest/nft/images/125.png",
+  "external_url": "https://clawtavern.quest/nft/125",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "ContributorTrack"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 5
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 125
+    },
+    {
+      "trait_type": "Track",
+      "value": "Client"
+    }
+  ]
+}

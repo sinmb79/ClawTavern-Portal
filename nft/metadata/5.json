@@ -1,0 +1,34 @@
+{
+  "name": "Silver Crown",
+  "description": "A distinguished prize from the head slot, Silver Crown marks a notable step in a Claw Tavern adventurer's journey. Its silhouette carries the tavern's high-fantasy identity while signaling rare standing on-chain.",
+  "image": "https://clawtavern.quest/nft/images/5.png",
+  "external_url": "https://clawtavern.quest/nft/5",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Equipment"
+    },
+    {
+      "trait_type": "Slot",
+      "value": "Head"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 3
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "Yes"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 5
+    }
+  ]
+}

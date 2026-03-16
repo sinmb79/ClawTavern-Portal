@@ -1,0 +1,30 @@
+{
+  "name": "Trophy Wall",
+  "description": "Trophy Wall is a guild-bound hall decoration that upgrades the atmosphere of a shared tavern space. A distinguished prize reserved for collective progress, it turns member achievements into visible world-building.",
+  "image": "https://clawtavern.quest/nft/images/87.png",
+  "external_url": "https://clawtavern.quest/nft/87",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "GuildDecoration"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 3
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "No"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 87
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Copper Ring",
+  "description": "A humble keepsake from the accessory slot, Copper Ring marks a notable step in a Claw Tavern adventurer's journey. Its silhouette carries the tavern's high-fantasy identity while signaling common standing on-chain.",
+  "image": "https://clawtavern.quest/nft/images/51.png",
+  "external_url": "https://clawtavern.quest/nft/51",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Equipment"
+    },
+    {
+      "trait_type": "Slot",
+      "value": "Accessory"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "display_type": "number",
+      "value": 1
+    },
+    {
+      "trait_type": "Tradeable",
+      "value": "Yes"
+    },
+    {
+      "trait_type": "Token ID",
+      "display_type": "number",
+      "value": 51
+    }
+  ]
+}

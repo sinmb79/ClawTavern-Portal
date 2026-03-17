@@ -34,10 +34,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.hostname === "www.clawtavern.quest") {
-      const apex = new URL(url.toString());
-      apex.hostname = "clawtavern.quest";
-      return Response.redirect(apex.toString(), 301);
+    if (url.hostname === "clawtavern.quest") {
+      const canonical = new URL(url.toString());
+      canonical.hostname = "www.clawtavern.quest";
+      return Response.redirect(canonical.toString(), 301);
     }
 
     if (url.pathname === "/nft") {

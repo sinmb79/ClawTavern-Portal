@@ -358,13 +358,8 @@
                   <div>
                     <p class="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">Network Profile</p>
                     <div class="mt-2 flex flex-wrap items-center gap-2">
-                      <span id="network-name-badge" class="badge rounded-full px-3 py-1 text-xs">Loading network</span>
-                      <span id="network-chain-badge" class="badge rounded-full px-3 py-1 text-xs">Chain --</span>
+                      <span id="network-name-badge" class="badge rounded-full px-3 py-1 text-xs">Base Mainnet</span>
                     </div>
-                  </div>
-                  <div class="flex flex-wrap gap-2">
-                    <a href="?network=baseSepolia" data-network-link="baseSepolia" class="network-link rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]">Sepolia</a>
-                    <a href="?network=base" data-network-link="base" class="network-link rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]">Mainnet</a>
                   </div>
                 </div>
               </div>
@@ -1028,47 +1023,19 @@
   <script>
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     const QUEST_FETCH_LIMIT = 6;
-    const NETWORK_CONFIG = {
-      baseSepolia: {
-        profileKey: "baseSepolia",
-        networkLabel: "Base Sepolia",
-        guildHallLabel: "Base Sepolia Guild Hall",
-        chainName: "Base Sepolia",
-        chainId: 84532,
-        chainHex: "0x14A34",
-        rpcUrl: "https://base-sepolia-rpc.publicnode.com",
-        explorer: "https://sepolia.basescan.org",
-        explorerTx: "https://sepolia.basescan.org/tx/",
-        zeroAddress: ZERO_ADDRESS,
-        addresses: {
-          adminPriceFeed: "0x1E072c705Cb306BA3Dd03A5f952ecd0c82416F80",
-          tavernToken: "0xf57549A6207421FFbA836B12C9343B060bE9A8Ed",
-          tavernRegistry: "0x08a3adAfb04E03589B9D167B6FA8b2152507107B",
-          tavernEscrow: "0x77EDA16B3a35B5732bdc252eD127Db08fB6f273D",
-          tavernStaking: "0x77235E24b49936cE3D6b195E6a1c4c68F686D82A",
-          tavernGovernance: "0x8c653FFe2EaD67a7147D86e9a0c9617F31b95f3C",
-          tavernAutomationRouter: "0x77F4feFE154EB40b316421800d8D2FB8ccb99E14",
-          tavernClientRPG: "0x877183b139981A4e7Dd593f6223C56e28032fc7D",
-          tavernSubscription: "0xEDc2D80075F26399f3af2d61800bdf95DCC90AaA",
-          tavernEquipment: ZERO_ADDRESS,
-          tavernGuild: ZERO_ADDRESS,
-          tavernServiceRegistry: ZERO_ADDRESS,
-          tavernMatchmaker: ZERO_ADDRESS,
-          usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
-        }
-      },
-      base: {
-        profileKey: "base",
-        networkLabel: "Base Mainnet",
-        guildHallLabel: "Base Mainnet Guild Hall",
-        chainName: "Base",
-        chainId: 8453,
-        chainHex: "0x2105",
-        rpcUrl: "https://base-rpc.publicnode.com",
-        explorer: "https://basescan.org",
-        explorerTx: "https://basescan.org/tx/",
-        zeroAddress: ZERO_ADDRESS,
-        addresses: {
+      const NETWORK_CONFIG = {
+        base: {
+          profileKey: "base",
+          networkLabel: "Base Mainnet",
+          guildHallLabel: "Base Mainnet",
+          chainName: "Base",
+          chainId: 8453,
+          chainHex: "0x2105",
+          rpcUrl: "https://base-rpc.publicnode.com",
+          explorer: "https://basescan.org",
+          explorerTx: "https://basescan.org/tx/",
+          zeroAddress: ZERO_ADDRESS,
+          addresses: {
             adminPriceFeed: "0x1dbCc7c12F82b6ae2b7fD7D482D501d7Db81618C",
             tavernToken: "0xbD06862576e6545C2A7D9566D86b7c7e7BbAB541",
             tavernRegistry: "0x60F9BCa5F361498e30f5634BE2413612D3991c1D",
@@ -1085,12 +1052,10 @@
             usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
           }
         }
-    };
+      };
 
-    const ACTIVE_NETWORK_KEY = new URLSearchParams(window.location.search).get("network") === "base"
-      ? "base"
-      : "baseSepolia";
-    const CONFIG = NETWORK_CONFIG[ACTIVE_NETWORK_KEY];
+    const ACTIVE_NETWORK_KEY = "base";
+    const CONFIG = NETWORK_CONFIG.base;
     document.title = `Claw Tavern | ${CONFIG.networkLabel} Marketplace`;
 
     const STATE_NAMES = [
@@ -1439,6 +1404,7 @@
 
     const refs = {};
     const walletListenerRegistry = new WeakSet();
+    const WALLET_SUPPRESSION_KEY = "clawtavern.wallet.suppressed";
 
     function $(id) {
       return document.getElementById(id);
@@ -1448,7 +1414,6 @@
       refs.connectWalletTop = $("connect-wallet-top");
       refs.networkProfileTitle = $("network-profile-title");
       refs.networkNameBadge = $("network-name-badge");
-      refs.networkChainBadge = $("network-chain-badge");
       refs.connectWallet = $("connect-wallet");
       refs.accountPill = $("account-pill");
       refs.topAccountPill = $("top-account-pill");
@@ -1963,7 +1928,31 @@
       if (!appState.chainId) {
         return "Read-only";
       }
-      return Number(appState.chainId) === CONFIG.chainId ? CONFIG.networkLabel : `Chain ${appState.chainId}`;
+      return Number(appState.chainId) === CONFIG.chainId ? CONFIG.networkLabel : "Wrong network";
+    }
+
+    function isWalletAutoConnectSuppressed() {
+      try {
+        return window.localStorage.getItem(WALLET_SUPPRESSION_KEY) === "1";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function clearWalletAutoConnectSuppression() {
+      try {
+        window.localStorage.removeItem(WALLET_SUPPRESSION_KEY);
+      } catch (_) {
+        // ignore storage access failures
+      }
+    }
+
+    function suppressWalletAutoConnect() {
+      try {
+        window.localStorage.setItem(WALLET_SUPPRESSION_KEY, "1");
+      } catch (_) {
+        // ignore storage access failures
+      }
     }
 
     function getWalletDisplayName(info, provider) {
@@ -2003,7 +1992,7 @@
 
     function getConnectButtonLabel() {
       if (appState.account) {
-        return "Refresh Wallet";
+        return "Log Out";
       }
       if (appState.availableWallets.length > 1) {
         return "Choose Wallet";
@@ -2158,10 +2147,6 @@
     function updateNetworkChrome() {
       refs.networkProfileTitle.textContent = CONFIG.guildHallLabel;
       refs.networkNameBadge.textContent = CONFIG.networkLabel;
-      refs.networkChainBadge.textContent = `Chain ${CONFIG.chainId}`;
-      document.querySelectorAll("[data-network-link]").forEach((link) => {
-        link.setAttribute("aria-current", link.dataset.networkLink === ACTIVE_NETWORK_KEY ? "page" : "false");
-      });
 
       renderAddressCard(refs.adminPriceFeedAddressCard, refs.adminPriceFeedAddressLabel, CONFIG.addresses.adminPriceFeed);
       renderAddressCard(refs.tokenAddressCard, refs.tokenAddressLabel, CONFIG.addresses.tavernToken);
@@ -2215,11 +2200,26 @@
     }
 
     function updateChainMismatchWarning() {
-      const hasMismatch = Boolean(appState.account) && Boolean(appState.chainId) && Number(appState.chainId) !== CONFIG.chainId;
-      refs.chainMismatchWarning.textContent = hasMismatch
-        ? `Connected wallet is on chain ${appState.chainId}, but this view expects ${CONFIG.networkLabel}.`
-        : "";
-      refs.chainMismatchWarning.classList.toggle("hidden", !hasMismatch);
+        const hasMismatch = Boolean(appState.account) && Boolean(appState.chainId) && Number(appState.chainId) !== CONFIG.chainId;
+        refs.chainMismatchWarning.textContent = hasMismatch
+          ? `${CONFIG.networkLabel} is required. Please switch the connected wallet network.`
+          : "";
+        refs.chainMismatchWarning.classList.toggle("hidden", !hasMismatch);
+      }
+
+    async function disconnectWalletSession(showToast = true) {
+      suppressWalletAutoConnect();
+      appState.browserProvider = null;
+      appState.signer = null;
+      appState.account = null;
+      appState.chainId = null;
+      appState.activeWalletProvider = null;
+      appState.activeWalletInfo = null;
+      updateWalletPill();
+      await refreshData();
+      if (showToast) {
+        pushToast("Wallet disconnected from this app.", "success");
+      }
     }
 
     function updateWalletPill() {
@@ -2267,6 +2267,8 @@
       if (!accounts || !accounts.length) {
         throw new Error("Wallet connection was rejected.");
       }
+
+      clearWalletAutoConnectSuppression();
 
       const provider = new ethers.BrowserProvider(providerSource);
       let network = await provider.getNetwork();
@@ -3983,12 +3985,11 @@
       refs.chainPanel.innerHTML = `
         <div class="panel-soft rounded-2xl p-4">
           <p class="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Chain info</p>
-          <div class="mt-2 space-y-1 text-sm">
-            <p>Network: ${escapeHtml(CONFIG.networkLabel)}</p>
-            <p>Chain ID: ${CONFIG.chainId}</p>
-            <p>Latest block: ${appState.blockNumber ?? "n/a"}</p>
+            <div class="mt-2 space-y-1 text-sm">
+              <p>Network: ${escapeHtml(CONFIG.networkLabel)}</p>
+              <p>Latest block: ${appState.blockNumber ?? "n/a"}</p>
+            </div>
           </div>
-        </div>
         <div class="panel-soft rounded-2xl p-4">
           <p class="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Escrow notes</p>
           <div class="mt-2 space-y-1 text-sm text-[var(--muted)]">
@@ -5253,6 +5254,10 @@
 
       const handleWalletConnect = async () => {
         try {
+          if (appState.account) {
+            await disconnectWalletSession();
+            return;
+          }
           await ensureConfiguredNetwork();
           await refreshData();
         } catch (error) {
@@ -5382,15 +5387,17 @@
       buildScoreControls();
       await primeMetadata();
 
-      for (const wallet of appState.availableWallets) {
-        try {
-          const accounts = await wallet.provider.request({ method: "eth_accounts" });
-          if (accounts.length) {
-            await ensureConfiguredNetwork(wallet);
-            break;
+      if (!isWalletAutoConnectSuppressed()) {
+        for (const wallet of appState.availableWallets) {
+          try {
+            const accounts = await wallet.provider.request({ method: "eth_accounts" });
+            if (accounts.length) {
+              await ensureConfiguredNetwork(wallet);
+              break;
+            }
+          } catch (_) {
+            // ignore individual wallet read failures during bootstrap
           }
-        } catch (_) {
-          // ignore individual wallet read failures during bootstrap
         }
       }
 

@@ -965,8 +965,24 @@
     </div>
   </div>
 
-  <div id="evaluation-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4 py-8">
-    <div class="panel w-full max-w-3xl rounded-[28px] p-6 sm:p-8">
+  <div id="wallet-chooser-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4 py-8">
+    <div class="panel w-full max-w-xl rounded-[28px] p-6 sm:p-8">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="heading-font text-2xl font-semibold">Choose Wallet</p>
+          <p id="wallet-chooser-subtitle" class="mt-2 text-sm text-[var(--muted)]">Select a browser wallet to connect to Claw Tavern.</p>
+        </div>
+        <button id="wallet-chooser-close" class="action-button ghost rounded-full px-3 py-2 text-sm">Close</button>
+      </div>
+      <div id="wallet-chooser-list" class="mt-6 grid gap-3"></div>
+      <div class="panel-soft mt-5 rounded-2xl p-4 text-sm text-[var(--muted)]">
+        EIP-6963 compatible wallets are listed here automatically. WalletConnect or mobile deep links can be added later if needed.
+      </div>
+    </div>
+  </div>
+
+    <div id="evaluation-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4 py-8">
+      <div class="panel w-full max-w-3xl rounded-[28px] p-6 sm:p-8">
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="heading-font text-2xl font-semibold">Submit Evaluation</p>
@@ -1413,11 +1429,16 @@
       subscriptionLastAction: null,
       lastRefreshAt: null,
       pendingAction: "",
+      availableWallets: [],
+      activeWalletProvider: null,
+      activeWalletInfo: null,
+      walletChooserResolver: null,
       evaluationQuestId: null,
       evaluationScores: [5, 5, 5, 5, 5]
     };
 
     const refs = {};
+    const walletListenerRegistry = new WeakSet();
 
     function $(id) {
       return document.getElementById(id);
@@ -1509,6 +1530,10 @@
       refs.confirmModalDetails = $("confirm-modal-details");
       refs.confirmModalOk = $("confirm-modal-ok");
       refs.confirmModalCancel = $("confirm-modal-cancel");
+      refs.walletChooserModal = $("wallet-chooser-modal");
+      refs.walletChooserSubtitle = $("wallet-chooser-subtitle");
+      refs.walletChooserList = $("wallet-chooser-list");
+      refs.walletChooserClose = $("wallet-chooser-close");
       refs.toastStack = $("toast-stack");
       refs.lastRefreshLabel = $("last-refresh-label");
       refs.briefHashPreview = $("brief-hash-preview");
@@ -1941,6 +1966,195 @@
       return Number(appState.chainId) === CONFIG.chainId ? CONFIG.networkLabel : `Chain ${appState.chainId}`;
     }
 
+    function getWalletDisplayName(info, provider) {
+      if (info?.name) {
+        return info.name;
+      }
+      if (provider?.isRabby) {
+        return "Rabby";
+      }
+      if (provider?.isMetaMask) {
+        return "MetaMask";
+      }
+      if (provider?.isCoinbaseWallet || provider?.isCoinbaseBrowser) {
+        return "Coinbase Wallet";
+      }
+      if (provider?.isOKXWallet || provider?.isOkxWallet) {
+        return "OKX Wallet";
+      }
+      if (provider?.isBraveWallet) {
+        return "Brave Wallet";
+      }
+      return "Browser Wallet";
+    }
+
+    function getWalletSummary() {
+      if (appState.activeWalletInfo?.name) {
+        return appState.activeWalletInfo.name;
+      }
+      if (appState.availableWallets.length > 1) {
+        return `${appState.availableWallets.length} wallets detected`;
+      }
+      if (appState.availableWallets.length === 1) {
+        return appState.availableWallets[0].name;
+      }
+      return "No wallet detected";
+    }
+
+    function getConnectButtonLabel() {
+      if (appState.account) {
+        return "Refresh Wallet";
+      }
+      if (appState.availableWallets.length > 1) {
+        return "Choose Wallet";
+      }
+      return "Connect Wallet";
+    }
+
+    function registerWalletCandidate(provider, info = null, options = {}) {
+      if (!provider) {
+        return;
+      }
+
+      const wallet = {
+        id: options.id || info?.uuid || info?.rdns || `${getWalletDisplayName(info, provider)}-${appState.availableWallets.length + 1}`,
+        name: getWalletDisplayName(info, provider),
+        icon: info?.icon || "",
+        rdns: info?.rdns || "",
+        provider
+      };
+
+      const existingIndex = appState.availableWallets.findIndex((item) =>
+        item.provider === provider ||
+        (wallet.rdns && item.rdns === wallet.rdns) ||
+        item.id === wallet.id
+      );
+
+      if (existingIndex >= 0) {
+        appState.availableWallets[existingIndex] = {
+          ...appState.availableWallets[existingIndex],
+          ...wallet
+        };
+      } else {
+        appState.availableWallets.push(wallet);
+      }
+    }
+
+    async function discoverWalletProviders() {
+      appState.availableWallets = [];
+
+      const ethereum = window.ethereum;
+      if (Array.isArray(ethereum?.providers) && ethereum.providers.length) {
+        ethereum.providers.forEach((provider, index) => {
+          registerWalletCandidate(provider, null, { id: `fallback-${index}` });
+        });
+      } else if (ethereum) {
+        registerWalletCandidate(ethereum, null, { id: "injected-default" });
+      }
+
+      window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+      await new Promise((resolve) => window.setTimeout(resolve, 180));
+
+      appState.availableWallets.sort((left, right) => left.name.localeCompare(right.name));
+      return appState.availableWallets;
+    }
+
+    function renderWalletChooser() {
+      refs.walletChooserList.innerHTML = appState.availableWallets.map((wallet) => `
+        <button
+          type="button"
+          class="panel-soft flex items-center justify-between gap-4 rounded-[24px] p-4 text-left transition hover:border-[rgba(246,223,142,0.28)] hover:bg-white/8"
+          data-wallet-choice="${escapeHtml(wallet.id)}"
+        >
+          <div class="flex items-center gap-4">
+            ${wallet.icon ? `<img src="${escapeHtml(wallet.icon)}" alt="" class="h-10 w-10 rounded-xl bg-white/5 object-cover">` : `<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10 text-gold"><span class="material-symbols-outlined text-[20px]">account_balance_wallet</span></div>`}
+            <div>
+              <p class="font-semibold">${escapeHtml(wallet.name)}</p>
+              <p class="mt-1 text-xs text-[var(--muted)]">${escapeHtml(wallet.rdns || "Injected browser wallet")}</p>
+            </div>
+          </div>
+          <span class="badge rounded-full px-3 py-1 text-xs">Select</span>
+        </button>
+      `).join("");
+    }
+
+    function closeWalletChooser(selectedWallet = null) {
+      refs.walletChooserModal.classList.add("hidden");
+      refs.walletChooserModal.classList.remove("flex");
+      const resolver = appState.walletChooserResolver;
+      appState.walletChooserResolver = null;
+      if (resolver) {
+        resolver(selectedWallet);
+      }
+    }
+
+    function openWalletChooser() {
+      renderWalletChooser();
+      refs.walletChooserSubtitle.textContent = `Detected ${appState.availableWallets.length} compatible browser wallets. Choose one to connect.`;
+      refs.walletChooserModal.classList.remove("hidden");
+      refs.walletChooserModal.classList.add("flex");
+      return new Promise((resolve) => {
+        appState.walletChooserResolver = resolve;
+      });
+    }
+
+    async function chooseWalletProvider() {
+      const wallets = await discoverWalletProviders();
+      updateWalletPill();
+
+      if (!wallets.length) {
+        throw new Error("No compatible browser wallet found. Install MetaMask, Rabby, Coinbase Wallet, or OKX Wallet.");
+      }
+
+      if (wallets.length === 1) {
+        return wallets[0];
+      }
+
+      const selectedWallet = await openWalletChooser();
+      if (!selectedWallet) {
+        throw new Error("Wallet selection was cancelled.");
+      }
+      return selectedWallet;
+    }
+
+    function bindWalletProviderEvents(provider) {
+      if (!provider || walletListenerRegistry.has(provider) || typeof provider.on !== "function") {
+        return;
+      }
+
+      walletListenerRegistry.add(provider);
+
+      provider.on("accountsChanged", async () => {
+        if (appState.activeWalletProvider !== provider) {
+          return;
+        }
+
+        const accounts = await provider.request({ method: "eth_accounts" });
+        if (!accounts.length) {
+          appState.browserProvider = null;
+          appState.signer = null;
+          appState.account = null;
+          appState.chainId = null;
+          appState.activeWalletProvider = null;
+          appState.activeWalletInfo = null;
+          await refreshData();
+          return;
+        }
+
+        await syncBrowserWalletState(provider);
+        await refreshData();
+      });
+
+      provider.on("chainChanged", async () => {
+        if (appState.activeWalletProvider !== provider) {
+          return;
+        }
+        await syncBrowserWalletState(provider);
+        await refreshData();
+      });
+    }
+
     function updateNetworkChrome() {
       refs.networkProfileTitle.textContent = CONFIG.guildHallLabel;
       refs.networkNameBadge.textContent = CONFIG.networkLabel;
@@ -2014,9 +2228,9 @@
         refs.topAccountPill.classList.remove("hidden");
         refs.topAccountPill.textContent = appState.account ? shortenAddress(appState.account) : "Read-only";
       }
-      refs.connectWallet.textContent = appState.account ? "Refresh Wallet" : "Connect Wallet";
+      refs.connectWallet.textContent = getConnectButtonLabel();
       if (refs.connectWalletTop) {
-        refs.connectWalletTop.textContent = appState.account ? "Refresh Wallet" : "Connect Wallet";
+        refs.connectWalletTop.textContent = getConnectButtonLabel();
       }
       renderStatusBar();
       updateChainMismatchWarning();
@@ -2024,7 +2238,9 @@
 
     function renderStatusBar() {
       if (refs.statusWallet) {
-        refs.statusWallet.textContent = appState.account ? shortenAddress(appState.account) : "Read-only";
+        refs.statusWallet.textContent = appState.account
+          ? `${shortenAddress(appState.account)} via ${getWalletSummary()}`
+          : getWalletSummary();
       }
       if (refs.statusChain) {
         refs.statusChain.textContent = appState.chainId ? getNetworkLabel() : CONFIG.networkLabel;
@@ -2039,28 +2255,31 @@
       }
     }
 
-    async function ensureConfiguredNetwork() {
-      if (!window.ethereum) {
-        throw new Error("No injected wallet found. Install MetaMask or Coinbase Wallet.");
+    async function ensureConfiguredNetwork(selectedWallet = null) {
+      const wallet = selectedWallet || await chooseWalletProvider();
+      const providerSource = wallet?.provider;
+
+      if (!providerSource) {
+        throw new Error("No injected wallet found. Install MetaMask, Rabby, Coinbase Wallet, or OKX Wallet.");
       }
 
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await providerSource.request({ method: "eth_requestAccounts" });
       if (!accounts || !accounts.length) {
         throw new Error("Wallet connection was rejected.");
       }
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider(providerSource);
       let network = await provider.getNetwork();
 
       if (Number(network.chainId) !== CONFIG.chainId) {
         try {
-          await window.ethereum.request({
+          await providerSource.request({
             method: "wallet_switchEthereumChain",
             params: [{ chainId: CONFIG.chainHex }]
           });
         } catch (error) {
           if (error && error.code === 4902) {
-            await window.ethereum.request({
+            await providerSource.request({
               method: "wallet_addEthereumChain",
               params: [{
                 chainId: CONFIG.chainHex,
@@ -2076,19 +2295,23 @@
         }
       }
 
-      appState.browserProvider = new ethers.BrowserProvider(window.ethereum);
+      bindWalletProviderEvents(providerSource);
+      appState.activeWalletProvider = providerSource;
+      appState.activeWalletInfo = wallet || { name: getWalletDisplayName(null, providerSource), provider: providerSource };
+      appState.browserProvider = new ethers.BrowserProvider(providerSource);
       appState.signer = await appState.browserProvider.getSigner();
       appState.account = await appState.signer.getAddress();
       appState.chainId = Number((await appState.browserProvider.getNetwork()).chainId);
       updateWalletPill();
     }
 
-    async function syncBrowserWalletState() {
-      if (!window.ethereum) {
+    async function syncBrowserWalletState(providerSource = null) {
+      const activeProvider = providerSource || appState.activeWalletProvider;
+      if (!activeProvider) {
         return;
       }
 
-      appState.browserProvider = new ethers.BrowserProvider(window.ethereum);
+      appState.browserProvider = new ethers.BrowserProvider(activeProvider);
       appState.signer = await appState.browserProvider.getSigner();
       appState.account = await appState.signer.getAddress();
       appState.chainId = Number((await appState.browserProvider.getNetwork()).chainId);
@@ -3732,6 +3955,10 @@
 
       refs.walletPanel.innerHTML = `
         <div class="panel-soft rounded-2xl p-4">
+          <p class="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Wallet provider</p>
+          <p class="mt-2 text-sm">${escapeHtml(getWalletSummary())}</p>
+        </div>
+        <div class="panel-soft rounded-2xl p-4">
           <p class="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Address</p>
           <p class="mt-2 break-all text-sm">${escapeHtml(appState.account ?? "Not connected")}</p>
         </div>
@@ -5037,6 +5264,20 @@
       if (refs.connectWalletTop) {
         refs.connectWalletTop.addEventListener("click", handleWalletConnect);
       }
+      refs.walletChooserClose.addEventListener("click", () => closeWalletChooser(null));
+      refs.walletChooserModal.addEventListener("click", (event) => {
+        if (event.target === refs.walletChooserModal) {
+          closeWalletChooser(null);
+        }
+      });
+      refs.walletChooserList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-wallet-choice]");
+        if (!button) {
+          return;
+        }
+        const wallet = appState.availableWallets.find((item) => item.id === button.dataset.walletChoice) ?? null;
+        closeWalletChooser(wallet);
+      });
 
       refs.refreshBoard.addEventListener("click", refreshData);
       refs.createQuestForm.addEventListener("submit", createQuestAndFund);
@@ -5122,50 +5363,34 @@
         }
       });
 
-      if (window.ethereum) {
-        window.ethereum.on("accountsChanged", async () => {
-          const accounts = await window.ethereum.request({ method: "eth_accounts" });
-          if (!accounts.length) {
-            appState.browserProvider = null;
-            appState.signer = null;
-            appState.account = null;
-            appState.chainId = null;
-            await refreshData();
-            return;
-          }
-          await syncBrowserWalletState();
-          await refreshData();
-        });
-
-        window.ethereum.on("chainChanged", async () => {
-          if (appState.browserProvider) {
-            await syncBrowserWalletState();
-          }
-          await refreshData();
-        });
-      }
-
       window.addEventListener("hashchange", applyRouteFromHash);
     }
 
     async function bootstrap() {
       bindRefs();
+      window.addEventListener("eip6963:announceProvider", (event) => {
+        if (event?.detail?.provider) {
+          registerWalletCandidate(event.detail.provider, event.detail.info);
+          updateWalletPill();
+        }
+      });
       attachEvents();
       updateNetworkChrome();
+      await discoverWalletProviders();
       updateWalletPill();
       updateBriefHashPreview();
       buildScoreControls();
       await primeMetadata();
 
-      const accounts = window.ethereum
-        ? await window.ethereum.request({ method: "eth_accounts" })
-        : [];
-
-      if (accounts.length) {
+      for (const wallet of appState.availableWallets) {
         try {
-          await ensureConfiguredNetwork();
+          const accounts = await wallet.provider.request({ method: "eth_accounts" });
+          if (accounts.length) {
+            await ensureConfiguredNetwork(wallet);
+            break;
+          }
         } catch (_) {
-          // stay in read-only mode
+          // ignore individual wallet read failures during bootstrap
         }
       }
 

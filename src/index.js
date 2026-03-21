@@ -45,12 +45,24 @@ export default {
     }
 
     const assetUrl = new URL(url.toString());
-    if (assetUrl.pathname === "/app") {
-      assetUrl.pathname = "/app/index.html";
-    } else if (assetUrl.pathname === "/admin") {
-      assetUrl.pathname = "/admin/index.html";
-    } else if (assetUrl.pathname === "/game" || assetUrl.pathname === "/game/") {
-      assetUrl.pathname = "/game/index.html";
+    const prettyRoutes = new Map([
+      ["/app", "/app/index.html"],
+      ["/admin", "/admin/index.html"],
+      ["/game", "/game/index.html"],
+      ["/game/", "/game/index.html"],
+      ["/agentwar", "/agentwar/index.html"],
+      ["/agentwar/", "/agentwar/index.html"],
+      ["/agentwar/map", "/agentwar/map.html"],
+      ["/agentwar/battles", "/agentwar/battles.html"],
+      ["/agentwar/factions", "/agentwar/factions.html"],
+      ["/agentwar/profile", "/agentwar/profile.html"],
+      ["/agentwar/ranking", "/agentwar/ranking.html"],
+      ["/agentwar/guide", "/agentwar/guide.html"],
+    ]);
+
+    const rewrittenPath = prettyRoutes.get(assetUrl.pathname);
+    if (rewrittenPath) {
+      assetUrl.pathname = rewrittenPath;
     }
 
     const assetRequest = assetUrl.toString() === url.toString()

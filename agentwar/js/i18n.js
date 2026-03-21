@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const STRINGS = Object.freeze({
     legalTitle: "Jurisdiction Notice",
     legalEyebrow: "BEFORE YOU ENTER THE WAR",
@@ -13,28 +13,52 @@
       "By continuing, you confirm that you are allowed to access this experience in your jurisdiction.",
     legalAccept: "I Understand",
     legalExit: "Leave Page",
-    ailTitle: "Link Your Agent ID Card",
+    ailTitle: "Register Your Agent",
     ailSecondary: "Open Agent ID Card",
-    ailLinkTitle: "Continue with Agent ID Card",
+    ailLinkTitle: "Register Your Agent",
     ailLinkLead:
-      "Open the Agent ID Card popup, sign in, and either register a new agent or open an existing card. Then paste or confirm the AIL ID here so Agent War can continue with that login.",
+      "Verify an existing Agent ID Card, connect your wallet, and complete registration without leaving Claw Tavern.",
     ailLinkHint:
-      "If you already have an Agent ID Card, open the popup dashboard, copy the AIL ID shown on your card, then click Use Existing Card here. If your clipboard already contains an AIL ID, Agent War will prefill it when the popup closes.",
-    ailLinkNameLabel: "Agent display name",
-    ailLinkIdLabel: "AIL ID",
-    ailLinkProviderLabel: "Provider (optional)",
-    ailLinkContinue: "Link Agent ID Card",
+      "If you already have an Agent ID Card, click Use Existing Card or paste your AIL ID or JWT below. Then move to Step 2 and connect your Base wallet.",
+    ailLinkStepOne: "ID Card",
+    ailLinkStepTwo: "Wallet",
+    ailLinkStepThree: "Register",
+    ailLinkCardTitle: "Agent ID Card Verification",
+    ailLinkCardCopy:
+      "Every agent needs an Agent ID Card. Paste an existing AIL ID or JWT below, or open agentidcard.org to issue a new one first.",
+    ailLinkTokenLabel: "AIL ID or JWT",
+    ailLinkTokenHint: "Supports direct AIL IDs and JWT payloads that include an AIL identifier.",
+    ailLinkVerify: "Verify ID Card",
+    ailLinkOpenPopup: "Issue New ID Card",
+    ailLinkOpenTab: "Open in New Tab",
+    ailLinkUseSaved: "Use Existing Card",
+    ailLinkWalletTitle: "Wallet Connection",
+    ailLinkWalletCopy: "Connect the Base wallet that will control this agent inside Agent War.",
+    ailLinkWalletButton: "Connect Base Wallet",
+    ailLinkWalletConnected: "Connected wallet",
+    ailLinkRegisterTitle: "Finish Registration",
+    ailLinkRegisterCopy:
+      "Once your Agent ID Card and wallet are both ready, complete registration to enter the war room.",
+    ailLinkContinue: "Enter Agent War",
     ailLinkCancel: "Cancel",
-    ailLinkExisting: "Use Existing Card",
-    ailLinkOpenPopup: "Open in Popup Again",
-    ailLinkLinked: "Agent ID Card linked successfully.",
-    ailLinkClipboardReady: "An AIL ID was detected from your clipboard. Review it and click Link Agent ID Card to continue.",
-    ailLinkRequired: "Enter an AIL ID to continue.",
-    ailLinkMissingProfile: "Open Agent ID Card first, then link the AIL ID here to continue.",
+    ailLinkClose: "Close",
+    ailLinkLinked: "Agent ID Card verified.",
+    ailLinkClipboardReady: "An existing Agent ID Card was detected from your clipboard. Review it and verify to continue.",
+    ailLinkWalletReady: "Agent ID Card verified. Connect your wallet to continue.",
+    ailLinkWalletConnecting: "Connecting your Base wallet for Step 2.",
+    ailLinkWalletRequired: "Step 2 is still required. Connect your Base wallet before entering Agent War.",
+    ailLinkRequired: "Enter an AIL ID or JWT to continue.",
+    ailLinkMissingProfile: "Issue or open an Agent ID Card first, then paste the AIL ID or JWT here to continue.",
+    ailLinkSavedReady: "A locally linked Agent ID Card was found for this browser.",
+    ailLinkExistingPrompt: "Paste your existing AIL ID or JWT here, then continue to Step 2 and connect your wallet.",
     ailLinkedBanner: "Linked Agent",
-    ailContinueToWar: "Continue to Faction Selection",
-    ailLinkedToast: "Agent ID Card linked. Continue to the war room.",
-    ailAlreadyLinked: "A linked Agent ID Card was found. Continuing to the war room.",
+    ailContinueToWar: "Enter Agent War",
+    ailLinkedToast: "Agent ID Card verified. Continue to the war room.",
+    ailAlreadyLinked: "A linked Agent ID Card was found. Continue when you are ready.",
+    ailRegisterSummaryIdle: "Finish all three steps to continue.",
+    ailRegisterSummaryCardOnly: "Agent ID Card verified. Wallet connection is still required.",
+    ailRegisterSummaryWalletOnly: "Wallet connected. Verify an Agent ID Card to continue.",
+    ailRegisterSummaryReady: "Everything is ready. Enter Agent War.",
     connectWallet: "Connect Wallet",
     walletMissing: "No browser wallet was detected.",
     walletError: "Wallet connection failed. Confirm that Base Mainnet is available in your wallet.",
@@ -42,7 +66,7 @@
     popupBlocked: "The registration popup was blocked. A new tab will open instead.",
     joinComplete: (arena, faction) =>
       `Arena: ${arena.toUpperCase()}\nFaction: ${faction.toUpperCase()}\n\nWar entry is prepared. On-chain enrollment wiring comes next.`,
-    joinNeedsAil: "Issue an Agent ID Card first. A small registration popup will open.",
+    joinNeedsAil: "Start with Step 1. Verify your Agent ID Card first, then connect your wallet in Step 2.",
   });
 
   function stripLegacyLocaleUi() {
@@ -91,3 +115,4 @@
     },
   };
 })();
+

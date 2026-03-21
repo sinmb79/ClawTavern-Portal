@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const BASE_CHAIN_HEX = "0x2105";
   const AIL_ORIGIN = "https://www.agentidcard.org";
   const AIL_POPUP_URL = `${AIL_ORIGIN}/dashboard?source=agentwar`;
@@ -143,6 +143,7 @@
     if (address) {
       localStorage.setItem(STORAGE_KEYS.wallet, address);
       applyWalletLabel(address);
+      syncLinkModal(getAILProfile());
     }
 
     return address;
@@ -205,7 +206,7 @@
     modal.hidden = true;
     modal.innerHTML = `
       <div class="agentwar-modal__backdrop"></div>
-      <div class="agentwar-modal__card" role="dialog" aria-modal="true" aria-labelledby="agentwar-link-title">
+      <div class="agentwar-modal__card agentwar-link-modal__card" role="dialog" aria-modal="true" aria-labelledby="agentwar-link-title">
         <div class="agentwar-modal__header">
           <div>
             <div class="agentwar-link-modal__eyebrow">AGENT ONBOARDING</div>
@@ -217,37 +218,73 @@
           <div class="agentwar-link-modal__lead" id="agentwar-link-lead"></div>
           <div class="agentwar-link-modal__hint" id="agentwar-link-hint"></div>
           <div class="agentwar-link-modal__status" id="agentwar-link-status" hidden></div>
-          <div class="agentwar-link-modal__grid">
-            <div class="agentwar-link-modal__panel">
-              <div class="agentwar-link-modal__panel-title">1. Agent ID Card</div>
-              <div class="agentwar-link-modal__panel-copy">
-                Open the popup, sign in, and either register a new agent or open an existing card.
+          <div class="agentwar-wizard__steps">
+            <div class="agentwar-wizard__step" id="agentwar-step-card">
+              <span class="agentwar-wizard__step-number">1</span>
+              <span class="agentwar-wizard__step-label" id="agentwar-link-step-one"></span>
+            </div>
+            <div class="agentwar-wizard__step" id="agentwar-step-wallet">
+              <span class="agentwar-wizard__step-number">2</span>
+              <span class="agentwar-wizard__step-label" id="agentwar-link-step-two"></span>
+            </div>
+            <div class="agentwar-wizard__step" id="agentwar-step-register">
+              <span class="agentwar-wizard__step-number">3</span>
+              <span class="agentwar-wizard__step-label" id="agentwar-link-step-three"></span>
+            </div>
+          </div>
+          <div class="agentwar-link-modal__stack">
+            <section class="agentwar-link-modal__panel agentwar-link-modal__panel--card">
+              <div class="agentwar-link-modal__panel-header">
+                <div class="agentwar-link-modal__panel-index">01</div>
+                <div>
+                  <div class="agentwar-link-modal__panel-title" id="agentwar-link-card-title"></div>
+                  <div class="agentwar-link-modal__panel-copy" id="agentwar-link-card-copy"></div>
+                </div>
               </div>
+              <label class="agentwar-link-modal__field">
+                <span id="agentwar-link-token-label"></span>
+                <textarea id="agentwar-link-token" rows="4" placeholder="AIL-2026-00001 or eyJhbGciOi..."></textarea>
+              </label>
+              <div class="agentwar-link-modal__field-note" id="agentwar-link-token-hint"></div>
               <div class="agentwar-link-modal__panel-actions">
+                <button type="button" class="agentwar-modal__button agentwar-modal__button--primary" id="agentwar-link-verify"></button>
                 <button type="button" class="agentwar-modal__button" id="agentwar-link-open-popup"></button>
-                <a class="agentwar-modal__button" id="agentwar-link-open-tab" href="${AIL_POPUP_URL}" target="_blank" rel="noreferrer noopener">Open in New Tab</a>
+                <a class="agentwar-modal__button" id="agentwar-link-open-tab" href="${AIL_POPUP_URL}" target="_blank" rel="noreferrer noopener"></a>
+                <button type="button" class="agentwar-modal__button" id="agentwar-link-use-saved"></button>
               </div>
-            </div>
-            <div class="agentwar-link-modal__panel">
-              <div class="agentwar-link-modal__panel-title">2. Link to Agent War</div>
-              <label class="agentwar-link-modal__field">
-                <span id="agentwar-link-name-label"></span>
-                <input type="text" id="agentwar-link-name" placeholder="CrystalMind">
-              </label>
-              <label class="agentwar-link-modal__field">
-                <span id="agentwar-link-id-label"></span>
-                <input type="text" id="agentwar-link-id" placeholder="AIL-2026-00042">
-              </label>
-              <label class="agentwar-link-modal__field">
-                <span id="agentwar-link-provider-label"></span>
-                <input type="text" id="agentwar-link-provider" placeholder="anthropic">
-              </label>
-            </div>
+              <div class="agentwar-link-modal__identity" id="agentwar-link-identity" hidden>
+                <div class="agentwar-link-modal__identity-label">${strings().ailLinkedBanner || "Linked Agent"}</div>
+                <div class="agentwar-link-modal__identity-name" id="agentwar-link-identity-name"></div>
+                <div class="agentwar-link-modal__identity-meta" id="agentwar-link-identity-meta"></div>
+              </div>
+            </section>
+            <section class="agentwar-link-modal__panel">
+              <div class="agentwar-link-modal__panel-header">
+                <div class="agentwar-link-modal__panel-index">02</div>
+                <div>
+                  <div class="agentwar-link-modal__panel-title" id="agentwar-link-wallet-title"></div>
+                  <div class="agentwar-link-modal__panel-copy" id="agentwar-link-wallet-copy"></div>
+                </div>
+              </div>
+              <div class="agentwar-link-modal__wallet-row">
+                <div class="agentwar-link-modal__wallet-chip" id="agentwar-link-wallet-state"></div>
+                <button type="button" class="agentwar-modal__button" id="agentwar-link-connect-wallet"></button>
+              </div>
+            </section>
+            <section class="agentwar-link-modal__panel">
+              <div class="agentwar-link-modal__panel-header">
+                <div class="agentwar-link-modal__panel-index">03</div>
+                <div>
+                  <div class="agentwar-link-modal__panel-title" id="agentwar-link-register-title"></div>
+                  <div class="agentwar-link-modal__panel-copy" id="agentwar-link-register-copy"></div>
+                </div>
+              </div>
+              <div class="agentwar-link-modal__summary" id="agentwar-link-summary"></div>
+            </section>
           </div>
         </div>
         <div class="agentwar-modal__footer">
           <button type="button" class="agentwar-modal__button" id="agentwar-link-cancel"></button>
-          <button type="button" class="agentwar-modal__button" id="agentwar-link-existing"></button>
           <button type="button" class="agentwar-modal__button agentwar-modal__button--primary" id="agentwar-link-submit"></button>
         </div>
       </div>
@@ -288,14 +325,25 @@
       ["agentwar-link-title", copy.ailLinkTitle],
       ["agentwar-link-lead", copy.ailLinkLead],
       ["agentwar-link-hint", copy.ailLinkHint],
-      ["agentwar-link-name-label", copy.ailLinkNameLabel],
-      ["agentwar-link-id-label", copy.ailLinkIdLabel],
-      ["agentwar-link-provider-label", copy.ailLinkProviderLabel],
+      ["agentwar-link-step-one", copy.ailLinkStepOne],
+      ["agentwar-link-step-two", copy.ailLinkStepTwo],
+      ["agentwar-link-step-three", copy.ailLinkStepThree],
+      ["agentwar-link-card-title", copy.ailLinkCardTitle],
+      ["agentwar-link-card-copy", copy.ailLinkCardCopy],
+      ["agentwar-link-token-label", copy.ailLinkTokenLabel],
+      ["agentwar-link-token-hint", copy.ailLinkTokenHint],
+      ["agentwar-link-wallet-title", copy.ailLinkWalletTitle],
+      ["agentwar-link-wallet-copy", copy.ailLinkWalletCopy],
+      ["agentwar-link-register-title", copy.ailLinkRegisterTitle],
+      ["agentwar-link-register-copy", copy.ailLinkRegisterCopy],
+      ["agentwar-link-verify", copy.ailLinkVerify],
+      ["agentwar-link-connect-wallet", copy.ailLinkWalletButton],
       ["agentwar-link-submit", copy.ailLinkContinue],
       ["agentwar-link-cancel", copy.ailLinkCancel],
-      ["agentwar-link-existing", copy.ailLinkExisting],
+      ["agentwar-link-use-saved", copy.ailLinkUseSaved],
       ["agentwar-link-open-popup", copy.ailLinkOpenPopup],
-      ["agentwar-link-close", "Close"],
+      ["agentwar-link-open-tab", copy.ailLinkOpenTab],
+      ["agentwar-link-close", copy.ailLinkClose || "Close"],
     ];
 
     mappings.forEach(([id, value]) => {
@@ -305,12 +353,71 @@
       }
     });
 
-    const nameInput = document.getElementById("agentwar-link-name");
-    const idInput = document.getElementById("agentwar-link-id");
-    const providerInput = document.getElementById("agentwar-link-provider");
-    if (nameInput instanceof HTMLInputElement) nameInput.value = profile?.agentName || "";
-    if (idInput instanceof HTMLInputElement) idInput.value = profile?.ailId || "";
-    if (providerInput instanceof HTMLInputElement) providerInput.value = profile?.provider || "";
+    const tokenInput = document.getElementById("agentwar-link-token");
+    if (tokenInput instanceof HTMLTextAreaElement && profile?.ailId && !tokenInput.value.trim()) {
+      tokenInput.value = profile.ailId;
+    }
+
+    const identity = document.getElementById("agentwar-link-identity");
+    const identityName = document.getElementById("agentwar-link-identity-name");
+    const identityMeta = document.getElementById("agentwar-link-identity-meta");
+    if (identity instanceof HTMLElement && identityName instanceof HTMLElement && identityMeta instanceof HTMLElement) {
+      if (profile?.ailId) {
+        identity.hidden = false;
+        identityName.textContent = profile.agentName || profile.ailId;
+        const metaParts = [profile.ailId];
+        if (profile.provider) metaParts.push(profile.provider);
+        identityMeta.textContent = metaParts.join(" · ");
+      } else {
+        identity.hidden = true;
+        identityName.textContent = "";
+        identityMeta.textContent = "";
+      }
+    }
+
+    const savedWallet = localStorage.getItem(STORAGE_KEYS.wallet);
+    const walletState = document.getElementById("agentwar-link-wallet-state");
+    if (walletState instanceof HTMLElement) {
+      walletState.textContent = savedWallet
+        ? `${copy.ailLinkWalletConnected || "Connected wallet"}: ${shortAddress(savedWallet)}`
+        : (copy.connectWallet || "Connect Wallet");
+      walletState.dataset.connected = savedWallet ? "true" : "false";
+    }
+
+    const summary = document.getElementById("agentwar-link-summary");
+    if (summary instanceof HTMLElement) {
+      let message = copy.ailRegisterSummaryIdle || "Finish all three steps to continue.";
+      if (profile?.ailId && savedWallet) {
+        message = copy.ailRegisterSummaryReady || "Everything is ready. Enter Agent War.";
+      } else if (profile?.ailId) {
+        message = copy.ailRegisterSummaryCardOnly || "Agent ID Card verified. Wallet connection is still required.";
+      } else if (savedWallet) {
+        message = copy.ailRegisterSummaryWalletOnly || "Wallet connected. Verify an Agent ID Card to continue.";
+      }
+      summary.textContent = message;
+    }
+
+    const submitButton = document.getElementById("agentwar-link-submit");
+    if (submitButton instanceof HTMLButtonElement) {
+      submitButton.disabled = !(profile?.ailId && savedWallet);
+    }
+
+    const useSavedButton = document.getElementById("agentwar-link-use-saved");
+    if (useSavedButton instanceof HTMLButtonElement) {
+      useSavedButton.hidden = false;
+    }
+
+    const steps = [
+      ["agentwar-step-card", Boolean(profile?.ailId)],
+      ["agentwar-step-wallet", Boolean(savedWallet)],
+      ["agentwar-step-register", Boolean(profile?.ailId && savedWallet)],
+    ];
+    steps.forEach(([id, complete]) => {
+      const element = document.getElementById(id);
+      if (element instanceof HTMLElement) {
+        element.dataset.complete = complete ? "true" : "false";
+      }
+    });
   }
 
   function setLinkModalStatus(message, tone = "neutral") {
@@ -321,18 +428,61 @@
     status.dataset.tone = tone;
   }
 
+  function focusLinkTokenInput() {
+    const tokenInput = document.getElementById("agentwar-link-token");
+    if (tokenInput instanceof HTMLTextAreaElement) {
+      tokenInput.focus();
+      tokenInput.select();
+    }
+  }
+
+  function focusWalletButton() {
+    const walletButton = document.getElementById("agentwar-link-connect-wallet");
+    if (walletButton instanceof HTMLButtonElement) {
+      walletButton.focus();
+    }
+  }
+
+  async function promoteAgentLink(profile, message) {
+    if (!profile?.ailId) {
+      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID or JWT to continue.", "error");
+      return;
+    }
+
+    syncLinkModal(profile);
+    setLinkModalStatus(
+      message || strings().ailLinkWalletReady || "Agent ID Card verified. Connect your wallet to continue.",
+      "success"
+    );
+    const savedWallet = localStorage.getItem(STORAGE_KEYS.wallet);
+    if (savedWallet) {
+      setLinkModalStatus(
+        strings().ailRegisterSummaryReady || "Everything is ready. Enter Agent War.",
+        "success"
+      );
+      return;
+    }
+
+    focusWalletButton();
+  }
+
   async function showLinkModal() {
     ensureAgentLinkModal();
-    syncLinkModal();
+    const existingProfile = getAILProfile();
+    syncLinkModal(existingProfile);
     setLinkModalStatus("", "neutral");
     const modal = document.getElementById("agentwar-link-modal");
     if (modal) modal.hidden = false;
-    const clipboardAilId = await prefillAilIdFromClipboard();
-    if (clipboardAilId) {
+    const clipboardCard = await readClipboardCardCredential();
+    if (clipboardCard?.profile) {
       setLinkModalStatus(
-        strings().ailLinkClipboardReady || "An AIL ID was detected from your clipboard. Review it and click Link Agent ID Card to continue.",
+        strings().ailLinkClipboardReady || "An existing Agent ID Card was detected from your clipboard. Review it and verify to continue.",
         "success"
       );
+    } else if (existingProfile && localStorage.getItem(STORAGE_KEYS.wallet)) {
+      setLinkModalStatus(strings().ailRegisterSummaryReady || "Everything is ready. Enter Agent War.", "success");
+    } else if (existingProfile) {
+      setLinkModalStatus(strings().ailLinkSavedReady || "A locally linked Agent ID Card was found for this browser.", "success");
     }
   }
 
@@ -353,20 +503,25 @@
     if (modal) modal.hidden = true;
   }
 
-  async function prefillAilIdFromClipboard() {
+  async function readClipboardCardCredential() {
     if (!navigator.clipboard?.readText) return null;
 
     try {
       const clipboardText = await navigator.clipboard.readText();
-      const match = clipboardText.match(AIL_ID_PATTERN);
-      if (!match) return null;
+      const raw = String(clipboardText || "").trim();
+      if (!raw) return null;
+      const extractedProfile = profileFromToken(raw, "clipboard");
+      if (!extractedProfile) return null;
 
-      const idInput = document.getElementById("agentwar-link-id");
-      if (idInput instanceof HTMLInputElement && !idInput.value.trim()) {
-        idInput.value = match[0].toUpperCase();
+      const tokenInput = document.getElementById("agentwar-link-token");
+      if (tokenInput instanceof HTMLTextAreaElement && !tokenInput.value.trim()) {
+        tokenInput.value = raw;
       }
 
-      return match[0].toUpperCase();
+      return {
+        raw,
+        profile: extractedProfile,
+      };
     } catch {
       return null;
     }
@@ -377,37 +532,68 @@
     return match ? match[0].toUpperCase() : "";
   }
 
+  function decodeJwtPayload(rawValue) {
+    const raw = String(rawValue || "").trim();
+    if (!raw || raw.split(".").length < 2) return null;
+
+    try {
+      const payloadSegment = raw.split(".")[1];
+      const normalized = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+      const decoded = atob(padded);
+      return JSON.parse(decoded);
+    } catch {
+      return null;
+    }
+  }
+
+  function profileFromToken(rawValue, source = "manual") {
+    const raw = String(rawValue || "").trim();
+    if (!raw) return null;
+
+    const directAilId = normalizeAilId(raw);
+    if (directAilId) {
+      return {
+        ailId: directAilId,
+        agentName: resolveLinkedAgentName("", directAilId),
+        provider: "",
+        source,
+      };
+    }
+
+    const payload = decodeJwtPayload(raw);
+    if (!payload) return null;
+
+    const derivedAilId = normalizeAilId(
+      payload.ailId || payload.ail_id || payload.agentId || payload.agent_id || payload.sub || payload.id
+    );
+    if (!derivedAilId) return null;
+
+    return {
+      ailId: derivedAilId,
+      agentName: resolveLinkedAgentName(payload.agentName || payload.agent_name || payload.name || "", derivedAilId),
+      provider: String(payload.provider || payload.issuer || payload.modelProvider || payload.model_provider || "").trim(),
+      source,
+    };
+  }
+
   function resolveLinkedAgentName(rawName, ailId) {
     const trimmed = String(rawName || "").trim();
     if (trimmed) return trimmed;
     return `Agent ${String(ailId || "").slice(-5) || "Pilot"}`;
   }
 
-  function autoLinkAilId(ailId, source = "clipboard") {
-    const normalizedId = normalizeAilId(ailId);
-    if (!normalizedId) return null;
+  function persistAgentCredential(rawValue, source = "manual") {
+    const extractedProfile = profileFromToken(rawValue, source);
+    if (!extractedProfile?.ailId) return null;
 
-    const nameInput = document.getElementById("agentwar-link-name");
-    const providerInput = document.getElementById("agentwar-link-provider");
-    const profile = persistAILProfile({
-      ailId: normalizedId,
-      agentName: resolveLinkedAgentName(
-        nameInput instanceof HTMLInputElement ? nameInput.value : "",
-        normalizedId
-      ),
-      provider: providerInput instanceof HTMLInputElement ? providerInput.value.trim() : "",
+    const existingProfile = getAILProfile();
+    return persistAILProfile({
+      ailId: extractedProfile.ailId,
+      agentName: resolveLinkedAgentName(extractedProfile.agentName || existingProfile?.agentName || "", extractedProfile.ailId),
+      provider: extractedProfile.provider || existingProfile?.provider || "",
       source,
     });
-
-    if (!profile) return null;
-    setLinkModalStatus(strings().ailLinkLinked || "Agent ID Card linked successfully.", "success");
-    window.setTimeout(() => continueAfterAgentLink(profile), 180);
-    return profile;
-  }
-
-  function promptForAilId() {
-    const input = window.prompt("Paste your AIL ID to continue into Agent War.", "");
-    return normalizeAilId(input || "");
   }
 
   function watchAilPopup(popup) {
@@ -415,21 +601,23 @@
       if (!popup || !popup.closed) return;
 
       window.clearInterval(poll);
-      const ailId = await prefillAilIdFromClipboard();
-      if (ailId) {
-        if (autoLinkAilId(ailId, "clipboard")) return;
+      const clipboardCard = await readClipboardCardCredential();
+      if (clipboardCard?.profile) {
+        const profile = persistAgentCredential(clipboardCard.raw, "clipboard");
+        if (profile) {
+          await promoteAgentLink(
+            profile,
+            strings().ailLinkWalletReady || "Agent ID Card verified. Connect your wallet to continue."
+          );
+          return;
+        }
       }
-
-      const manualAilId = promptForAilId();
-      if (manualAilId) {
-        if (autoLinkAilId(manualAilId, "manual-prompt")) return;
-        return;
-      }
-
+      await showLinkModal();
       setLinkModalStatus(
-        strings().ailLinkMissingProfile || "Open Agent ID Card first, then link the AIL ID here to continue.",
+        strings().ailLinkExistingPrompt || "If you already have an Agent ID Card, paste the AIL ID or JWT here to continue into wallet connection.",
         "neutral"
       );
+      focusLinkTokenInput();
     }, 500);
   }
 
@@ -506,48 +694,88 @@
     window.location.href = target;
   }
 
-  async function linkAgentFromForm(source) {
-    const ailInput = document.getElementById("agentwar-link-id");
-    const nameInput = document.getElementById("agentwar-link-name");
-    const providerInput = document.getElementById("agentwar-link-provider");
-    let ailId = ailInput instanceof HTMLInputElement ? ailInput.value.trim() : "";
+  async function continueWithWallet(profile) {
+    if (!profile?.ailId) {
+      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID or JWT to continue.", "error");
+      return;
+    }
 
-    if (!ailId) {
-      const clipboardAilId = await prefillAilIdFromClipboard();
-      if (clipboardAilId) {
-        ailId = clipboardAilId;
+    const savedWallet = localStorage.getItem(STORAGE_KEYS.wallet);
+    if (savedWallet) {
+      syncLinkModal(profile);
+      setLinkModalStatus(
+        strings().ailRegisterSummaryReady || "Everything is ready. Enter Agent War.",
+        "success"
+      );
+      return;
+    }
+
+    setLinkModalStatus(
+      strings().ailLinkWalletConnecting || "Agent linked. Connecting your wallet to continue.",
+      "neutral"
+    );
+
+    try {
+      const connectedWallet = await connectWallet();
+      if (!connectedWallet) {
+        setLinkModalStatus(
+          strings().ailLinkWalletRequired || "Agent linked. Connect your wallet to finish entering Agent War.",
+          "error"
+        );
+        return;
+      }
+
+      syncLinkModal(profile);
+      setLinkModalStatus(
+        strings().ailRegisterSummaryReady || "Everything is ready. Enter Agent War.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Agent War wallet continuation failed", error);
+      setLinkModalStatus(
+        strings().walletError || "Wallet connection failed. Confirm that Base Mainnet is available in your wallet.",
+        "error"
+      );
+    }
+  }
+
+  async function linkAgentFromForm(source) {
+    const tokenInput = document.getElementById("agentwar-link-token");
+    let rawToken = tokenInput instanceof HTMLTextAreaElement ? tokenInput.value.trim() : "";
+
+    if (!rawToken) {
+      const clipboardCard = await readClipboardCardCredential();
+      if (clipboardCard?.raw) {
+        rawToken = clipboardCard.raw;
       }
     }
 
-    if (!ailId) {
-      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID to continue.", "error");
+    if (!rawToken) {
+      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID or JWT to continue.", "error");
       return;
     }
 
-    const profile = persistAILProfile({
-      ailId,
-      agentName: resolveLinkedAgentName(
-        nameInput instanceof HTMLInputElement ? nameInput.value.trim() : "",
-        ailId
-      ),
-      provider: providerInput instanceof HTMLInputElement ? providerInput.value.trim() : "",
-      source,
-    });
+    const extractedProfile = profileFromToken(rawToken, source);
+    if (!extractedProfile) {
+      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID or JWT to continue.", "error");
+      return;
+    }
+
+    const profile = persistAILProfile(extractedProfile);
 
     if (!profile) {
-      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID to continue.", "error");
+      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID or JWT to continue.", "error");
       return;
     }
 
-    setLinkModalStatus(strings().ailLinkLinked || "Agent ID Card linked successfully.", "success");
-    window.setTimeout(() => continueAfterAgentLink(profile), 220);
+    await continueWithWallet(profile);
   }
 
   function markAILRegistered(profile = {}) {
     if (profile?.ailId) {
       const saved = persistAILProfile(profile);
       if (saved) {
-        continueAfterAgentLink(saved);
+        syncLinkModal(saved);
         return;
       }
     }
@@ -573,7 +801,9 @@
     });
 
     if (!profile) return;
-    continueAfterAgentLink(profile);
+    showLinkModal().then(async () => {
+      await promoteAgentLink(profile);
+    });
   }
 
   function runAfterLegalAcceptance(action) {
@@ -588,21 +818,40 @@
 
   function requestAgentJoin(options = {}) {
     runAfterLegalAcceptance(() => {
-      rememberJoinIntent(options);
-      const existingProfile = getAILProfile();
-      if (existingProfile) {
-        continueAfterAgentLink(existingProfile);
-        return;
-      }
+      void (async () => {
+        rememberJoinIntent(options);
+        const existingProfile = getAILProfile();
+        const existingWallet = localStorage.getItem(STORAGE_KEYS.wallet);
+        if (existingProfile && existingWallet) {
+          continueAfterAgentLink(existingProfile);
+          return;
+        }
 
-      openAILPopup();
-      showLinkModal();
+        await showLinkModal();
+        if (existingProfile) {
+          syncLinkModal(existingProfile);
+          setLinkModalStatus(
+            existingWallet
+              ? (strings().ailRegisterSummaryReady || "Everything is ready. Enter Agent War.")
+              : (strings().ailLinkWalletRequired || "Connect your wallet before entering Agent War."),
+            existingWallet ? "success" : "neutral"
+          );
+          if (!existingWallet) {
+            await continueWithWallet(existingProfile);
+          }
+          return;
+        }
+
+        setLinkModalStatus(strings().joinNeedsAil || "Issue or open an Agent ID Card first, then continue here.", "neutral");
+        focusLinkTokenInput();
+      })();
     });
   }
 
   function completeJoin(selection = {}) {
     const profile = getAILProfile();
-    if (!profile) {
+    const wallet = localStorage.getItem(STORAGE_KEYS.wallet);
+    if (!(profile && wallet)) {
       requestAgentJoin({
         arena: selection.arena ?? null,
         faction: selection.faction ?? null,
@@ -633,6 +882,24 @@
     });
   }
 
+  function finalizeLinkRegistration() {
+    const profile = getAILProfile();
+    const wallet = localStorage.getItem(STORAGE_KEYS.wallet);
+
+    if (!profile) {
+      setLinkModalStatus(strings().ailLinkRequired || "Enter an AIL ID or JWT to continue.", "error");
+      return;
+    }
+
+    if (!wallet) {
+      setLinkModalStatus(strings().ailLinkWalletRequired || "Connect your wallet before entering Agent War.", "error");
+      return;
+    }
+
+    setLinkModalStatus(strings().ailLinkedToast || "Agent ID Card verified. Continue to the war room.", "success");
+    window.setTimeout(() => continueAfterAgentLink(profile), 140);
+  }
+
   function bindLinkModal() {
     document.getElementById("agentwar-link-close")?.addEventListener("click", closeLinkModal);
     document.getElementById("agentwar-link-cancel")?.addEventListener("click", closeLinkModal);
@@ -640,11 +907,53 @@
       openAILPopup();
       setLinkModalStatus("", "neutral");
     });
-    document.getElementById("agentwar-link-existing")?.addEventListener("click", async () => {
-      await linkAgentFromForm("existing-card");
+    document.getElementById("agentwar-link-open-tab")?.addEventListener("click", () => {
+      setLinkModalStatus("", "neutral");
     });
-    document.getElementById("agentwar-link-submit")?.addEventListener("click", async () => {
-      await linkAgentFromForm("registration");
+    document.getElementById("agentwar-link-use-saved")?.addEventListener("click", async () => {
+      let profile = getAILProfile();
+
+      if (!profile) {
+        const clipboardCard = await readClipboardCardCredential();
+        if (clipboardCard?.raw) {
+          profile = persistAgentCredential(clipboardCard.raw, "clipboard-existing");
+        }
+      }
+
+      if (!profile) {
+        const manualCredential = promptForCardCredential();
+        if (manualCredential) {
+          const tokenInput = document.getElementById("agentwar-link-token");
+          if (tokenInput instanceof HTMLTextAreaElement) {
+            tokenInput.value = manualCredential;
+          }
+          profile = persistAgentCredential(manualCredential, "manual-existing");
+        }
+      }
+
+      if (!profile) {
+        setLinkModalStatus(
+          strings().ailLinkMissingProfile || "Issue or open an Agent ID Card first, then paste the AIL ID or JWT here to continue.",
+          "error"
+        );
+        focusLinkTokenInput();
+        return;
+      }
+
+      setLinkModalStatus(
+        strings().ailLinkSavedReady || "A locally linked Agent ID Card was found for this browser.",
+        "success"
+      );
+      await continueWithWallet(profile);
+    });
+    document.getElementById("agentwar-link-verify")?.addEventListener("click", async () => {
+      await linkAgentFromForm("manual-verify");
+    });
+    document.getElementById("agentwar-link-connect-wallet")?.addEventListener("click", async () => {
+      await continueWithWallet(getAILProfile());
+    });
+    document.getElementById("agentwar-link-submit")?.addEventListener("click", () => {
+      finalizeLinkRegistration();
     });
   }
 
@@ -687,3 +996,4 @@
     applyLinkedAgentState();
   });
 })();
+
